@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Mental Health Companion</title>
+  <link rel="stylesheet" href="../static/style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🧠 AI Mental Health Companion</h1>
+    <p>Type how you feel today:</p>
+
+    <form id="chatForm">
+      <textarea id="user_input" name="user_input" placeholder="How are you feeling?" required></textarea><br>
+      <button type="submit">Analyze</button>
+    </form>
+
+    <div id="result" class="hidden">
+      <h3>Sentiment: <span id="sentiment"></span></h3>
+      <div class="emoji" id="emoji"></div>
+      <p id="response"></p>
+    </div>
+  </div>
+
+  <script>
+    document.getElementById('chatForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const text = document.getElementById('user_input').value;
+      const response = await fetch('/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: 'user_input=' + encodeURIComponent(text)
+      });
+      const data = await response.json();
+      document.getElementById('sentiment').innerText = data.sentiment;
+      document.getElementById('emoji').innerText = data.emoji;
+      document.getElementById('response').innerText = data.response;
+      document.getElementById('result').classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
