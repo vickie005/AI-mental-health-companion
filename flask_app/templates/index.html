@@ -5,38 +5,89 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>AI Mental Health Companion</title>
   <link rel="stylesheet" href="../static/style.css">
+  <style>
+    .hidden { display: none; }
+    #loading { color: #555; font-style: italic; margin-top: 10px; }
+    .resources-list { text-align: left; background: #f9f9f9; padding: 15px; border-radius: 8px; margin-top: 15px; }
+    .emoji { font-size: 3rem; margin: 10px 0; }
+  </style>
 </head>
 <body>
   <div class="container">
     <h1>🧠 AI Mental Health Companion</h1>
-    <p>Type how you feel today:</p>
+    <p>How are you feeling today? Share your thoughts below.</p>
 
     <form id="chatForm">
-      <textarea id="user_input" name="user_input" placeholder="How are you feeling?" required></textarea><br>
-      <button type="submit">Analyze</button>
+      <textarea id="user_input" name="user_input" placeholder="Type here..." required></textarea><br>
+      <button type="submit" id="submitBtn">Analyze My Mood</button>
     </form>
 
+    <div id="loading" class="hidden">Connecting with the AI... ⏳</div>
+
     <div id="result" class="hidden">
-      <h3>Sentiment: <span id="sentiment"></span></h3>
+      <hr>
       <div class="emoji" id="emoji"></div>
-      <p id="response"></p>
+      <h3>We detected a <span id="sentiment"></span> mood.</h3>
+      <div id="ai-bubble" style="background: #eef2ff; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+        <p id="response" style="font-size: 1.1rem; line-height: 1.5;"></p>
+      </div>
+      
+      <h4>Helpful Resources for You:</h4>
+      <ul id="resources" class="resources-list"></ul>
+      
+      <button onclick="location.reload()" style="background: #6c757d;">Clear & Start Over</button>
     </div>
   </div>
+
+  <footer style="margin-top: 40px; font-size: 12px; color: #78909c;">
+  <hr style="border: 0; border-top: 1px solid #37474f; margin-bottom: 20px;">
+  <p><strong>Disclaimer:</strong> This AI tool is for emotional support and informational purposes only. It is not a substitute for professional medical advice or diagnosis. If you are in immediate danger, please contact local emergency services or the hotlines listed above.</p>
+  <p>Supporting UN Sustainable Development Goal 3: Good Health and Well-being.</p>
+</footer>
 
   <script>
     document.getElementById('chatForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const text = document.getElementById('user_input').value;
-      const response = await fetch('/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: 'user_input=' + encodeURIComponent(text)
-      });
-      const data = await response.json();
-      document.getElementById('sentiment').innerText = data.sentiment;
-      document.getElementById('emoji').innerText = data.emoji;
-      document.getElementById('response').innerText = data.response;
-      document.getElementById('result').classList.remove('hidden');
+      const submitBtn = document.getElementById('submitBtn');
+      const loading = document.getElementById('loading');
+      const resultDiv = document.getElementById('result');
+
+      // UI Feedback
+      submitBtn.disabled = true;
+      loading.classList.remove('hidden');
+      resultDiv.classList.add('hidden');
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: 'user_input=' + encodeURIComponent(text)
+        });
+        
+        const data = await response.json();
+
+        // Update UI
+        document.getElementById('sentiment').innerText = data.sentiment;
+        document.getElementById('emoji').innerText = data.emoji;
+        document.getElementById('response').innerText = data.response;
+        
+        // Populate Resources (assuming you update app.py to send them)
+        const resList = document.getElementById('resources');
+        resList.innerHTML = '';
+        data.resources.forEach(res => {
+          let li = document.createElement('li');
+          li.innerText = res;
+          resList.appendChild(li);
+        });
+
+        resultDiv.classList.remove('hidden');
+      } catch (error) {
+        alert("Something went wrong. Please check your server.");
+      } finally {
+        loading.classList.add('hidden');
+        submitBtn.disabled = false;
+      }
     });
   </script>
 </body>
