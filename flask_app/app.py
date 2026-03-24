@@ -6,14 +6,11 @@ import os
 from openai import OpenAI
 from dotenv import load_dotenv
 
-# 1. Configuration & Setup
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 app = Flask(__name__)
 
-# 2. Load ML Assets 
-# Ensure these files are in the same folder as app.py or update the paths
 try:
     model = joblib.load('sentiment_model.pkl')
     vectorizer = joblib.load('vectorizer.pkl')
@@ -21,7 +18,6 @@ try:
 except Exception as e:
     print(f"❌ Error loading ML files: {e}")
 
-# 3. Helper Functions
 def clean_text(text):
     """Cleans user input for the ML model."""
     text = text.lower()
@@ -76,7 +72,7 @@ def ai_chat_response(user_text):
         print(f"API Error: {e}")
         return "I'm here for you. Please tell me more about how you're feeling."
 
-# 4. Routes
+# Routes
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -88,16 +84,13 @@ def predict():
         if not user_text:
             return jsonify({'error': 'No input provided'}), 400
 
-        # Preprocessing & Sentiment Prediction
         cleaned = clean_text(user_text)
         vectorized = vectorizer.transform([cleaned])
         sentiment = model.predict(vectorized)[0]
 
-        # Get Resources and Default Message
         base_response, emoji = emotion_response(sentiment)
         resources = mental_health_resources(sentiment)
 
-        # Logic: Use AI for deeper empathy on Negative/Neutral inputs
         if sentiment in ["negative", "neutral"]:
             ai_response = ai_chat_response(user_text)
         else:
@@ -112,7 +105,5 @@ def predict():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 5. Run App
 if __name__ == '__main__':
-    # Using host='0.0.0.0' allows access from other devices on your local network
     app.run(debug=True, port=5000)

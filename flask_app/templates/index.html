@@ -72,7 +72,7 @@
         document.getElementById('emoji').innerText = data.emoji;
         document.getElementById('response').innerText = data.response;
         
-        // Populate Resources (assuming you update app.py to send them)
+        // Populate Resources
         const resList = document.getElementById('resources');
         resList.innerHTML = '';
         data.resources.forEach(res => {
